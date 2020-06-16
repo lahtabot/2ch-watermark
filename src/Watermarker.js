@@ -64,6 +64,15 @@ class Watermarker {
         this.IMAGE_MIME_TYPE = imageMimeType; // default is 'image/png'
 
 
+        this.fileToBlob = this.fileToBlob.bind(this);
+        this.fileToDataUrl = this.fileToDataUrl.bind(this);
+        this.fileToImage = this.fileToImage.bind(this);
+        this._drawNextText = this._drawNextText.bind(this);
+        this._generatePattern = this._generatePattern.bind(this);
+        this._loadContextConfig = this._loadContextConfig.bind(this);
+        this.drawPatternOnImage = this.drawPatternOnImage.bind(this);
+        
+
         this._generatePattern();
     }
 
