@@ -1,5 +1,6 @@
 /**
  * Does all the stuff with files and images.
+ * TODO: unit tests
  */
 class Watermarker {
 
@@ -21,15 +22,15 @@ class Watermarker {
             shadowColor = 'black',
             shadowBlur = 3,
             fillStyle = 'rgba(255, 255, 255, 0.65)'
-        },
+        } = {},
         position: {
             rotationAngleInDegrees = 40,
-            patternWidth,
-            patternHeight,
+            patternWidth = 400,
+            patternHeight = 400,
             xOffset = 38 * 2,
             yOffset = 38 * 2,
-        },
-        imageMimeType = 'image/jpg',
+        } = {},
+        imageMimeType = 'image/jpeg',
 
     }) {
         this.CAPTIONS = captions;
@@ -69,6 +70,32 @@ class Watermarker {
     /************************************************************************
      * File processing.
     *************************************************************************/
+
+    /**
+     * Reads image from file, applies pattern, converts to data url.
+     * @param {File} file
+     * @returns {Promise<string>} 'data:type...' url, containing image.
+     */
+    async fileToDataUrl(file) {
+        const image = await this.fileToImage(file);
+
+        const canvasWithPattern = this.drawPatternOnImage(image);
+
+        return canvasWithPattern.toDataURL(this.IMAGE_MIME_TYPE);
+    }
+
+    /**
+     * Reads image from file, applies pattern, converts to data blob.
+     * @param {File} file
+     * @returns {Promise<Blob>}
+     */
+    async fileToBlob(file) {
+        const image = await this.fileToImage(file);
+
+        const canvasWithPattern = this.drawPatternOnImage(image);
+
+        return await new Promise((resolve, reject) => canvasWithPattern.toBlob(resolve, this.IMAGE_MIME_TYPE));
+    }
 
     /**
      * Reads image from file.
@@ -115,9 +142,8 @@ class Watermarker {
     /**
      * Applies pattern to image and returns the resulting canvas.
      * @param {HTMLImageElement} image 
-     * @param {CanvasPattern} pattern 
      */
-    drawPatternOnImage(image, pattern) {
+    drawPatternOnImage(image) {
         const canvas = document.createElement('canvas');
 
         // Set proper size.
@@ -128,7 +154,7 @@ class Watermarker {
         ctx.drawImage(image, 0, 0);
 
         // Use generated pattern to make a watermark.
-        ctx.fillStyle = pattern;
+        ctx.fillStyle = this._pattern;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         log('drawn pattern on image');
@@ -162,10 +188,10 @@ class Watermarker {
         patternCanvas.width = dimensions.width * CAPTIONS.length;
         patternCanvas.height = dimensions.height; */
 
-        this.loadContextConfig(canvasContext);
+        this._loadContextConfig(canvasContext);
 
         // Rotate all captions.
-        this.CAPTIONS.forEach((CAPTION, shift) => { this.drawNextText(CAPTION, canvasContext, shift); });
+        this.CAPTIONS.forEach((CAPTION, shift) => { this._drawNextText(CAPTION, canvasContext, shift); });
 
         log('generated pattern');
 
@@ -194,7 +220,7 @@ class Watermarker {
      * @param {number} shift
      * @param {Function} drawCallback
      */
-    drawNextText(CAPTION, canvasContext, shift, textAlign = TEXT_ALIGN, width = PATTERN_WIDTH) {
+    _drawNextText(CAPTION, canvasContext, shift, textAlign = this.TEXT_ALIGN, width = this.PATTERN_WIDTH) {
         const transformMatrix = canvasContext.getTransform();
 
         transformMatrix.e = this.X_OFFSET + (shift) * width;
@@ -219,7 +245,7 @@ class Watermarker {
 
         canvasContext.rotate(this.ROTATION_ANGLE);
         canvasContext.fillText(CAPTION, x, y, this.MAX_TEXT_WIDHT);
-        canvasContext.rotate(-this.ROTATION_ANGLE);
+        canvasContext.rotate(-(this.ROTATION_ANGLE));
 
         log(`drawn ${shift} caption`)
     }
