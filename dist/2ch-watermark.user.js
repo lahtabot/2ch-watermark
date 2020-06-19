@@ -8,8 +8,6 @@
 // @author       anon
 // @grant GM_getValue
 // @grant GM_setValue
-// @require https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/monolith.min.css
-// @require https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js
 // @include http*://2ch.hk/*
 // @include http*://2ch.pm/*
 // @include http*://2ch.re/*
